@@ -1,9 +1,11 @@
 #include <msp430.h>
 #include <header.h>
-#include <stdio.h>
 
 //SDA - port 7.4
 //SCL - port 2.2
+
+unsigned int wynik = 0;
+float wynik2 = 0;
 
 
 void Start(){
@@ -46,8 +48,7 @@ void SendComm(unsigned char comm){
     __delay_cycles(TIME);
     P2OUT |= SCL; //ustaw zegar na 1
     __delay_cycles(TIME);
-    if(!P7IN&SDA) //ACK
-        printf("A");
+    //tutaj sprawdü ACK
     __delay_cycles(TIME);
     P2OUT &= ~SCL; //ustaw zegar na 0
     __delay_cycles(TIME);
@@ -87,8 +88,8 @@ unsigned int ReadByte(){
     }
 
     //wyúlij ACK
-    P7DIR |= SDA; //ustaw na output
     P7OUT &= ~SDA; //ustaw output na 0
+    P7DIR |= SDA; //ustaw na output
     __delay_cycles(TIME);
     P2OUT |= SCL; //ustaw zegar na 1
     __delay_cycles(TIME*2);
@@ -113,7 +114,6 @@ void Stop(){
 
 int main(void)
 {
-    unsigned int wynik = 0;
 
 	WDTCTL = WDTPW | WDTHOLD;	// stop watchdog timer
 
@@ -122,12 +122,13 @@ int main(void)
 
 	for(;;){
 	    Start();
-	    SendComm(0x00); //slave adress + Write 0xB4
-	    SendComm(0x06); //komenda - czytaj temperature obiektu
+	    SendComm(0xB4); //slave adress + Write 0xB4
+	    SendComm(0x07); //komenda - czytaj temperature obiektu
 	    Start();
-	    SendComm(0x01); //slave adress + Read 0xB5
+	    SendComm(0xB5); //slave adress + Read 0xB5
 	    wynik = ReadTemp(); //Czytaj 3 bajty
 	    Stop();
+	    wynik2 = wynik*0.02-0.18-273.15;
 	    __delay_cycles(MEASURE_TIME);
 	}
 }
