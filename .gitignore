@@ -2,3 +2,4 @@
 /frontend/node_modules
 /thermometer-esp32/build
 /thermometer-esp32/.vscode
+/Debug

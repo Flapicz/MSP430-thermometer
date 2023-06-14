@@ -15,10 +15,16 @@ app.listen(PORT, ()=>{
 })
 
 app.get('/', async (req,res)=>{
-    console.log(req.headers['user-agent'])
-    const measurementDocs = await measurementModel.find();
+    const measurementDocs = await measurementModel.find().sort({createdAt: -1});
     res.status(200).json(measurementDocs);
 })
+
+app.get('/delete-all', async (req,res)=>{
+    await measurementModel.deleteMany();
+	res.status(200).send('All documents has been deleted');
+    
+})
+
 
 app.post('/', async (req, res) => {
     const newMeasurement = new measurementModel(req.body)

@@ -1,15 +1,17 @@
 #include <msp430.h>
 #include <header.h>
-
+#include <math.h>
 //SDA - port 7.4
 //SCL - port 2.2
 
 unsigned long int wynik=0;
+unsigned long int wynikA=0;
+float wynik_kor = 0;
 float wynik2 = 0;
 
 unsigned char *PTxData;
 unsigned char TXByteCtr;
-unsigned char TxData[] = {0x00, 0x00, 0x00, 0x00};
+unsigned char TxData[]= {0x00,0x00,0x00,0x00};
 
 
 void Start(){
@@ -140,23 +142,44 @@ void i2c_send_bytes(){
 
 int main(void)
 {
-    WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
+	for(;;){	
+	WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
     //init portów
     P2DIR |= SCL;
-        Start();
-        SendComm(0xB4); //slave adress + Write 0xB4
-        SendComm(0x07); //komenda - czytaj temperature obiektu
-        Start();
-        SendComm(0xB5); //slave adress + Read 0xB5
-        wynik = ReadTemp(); //Czytaj 3 bajty
-        Stop();
-        TxData[3] = (wynik);
-        TxData[2] = (wynik)>>8;
-        TxData[1] = (wynik>>16);
-        TxData[0] = (wynik>>24);
-        i2c_send_bytes();
-        wynik2 = wynik*0.02-0.18-273.15;
-        __delay_cycles(MEASURE_TIME);
+    Start();
+    SendComm(0xB4); //slave adress + Write 0xB
+	SendComm(0x07); //komenda - czytaj temperature obiektu //obj1
+	Start();
+	SendComm(0xB5); //slave adress + Read 0xB5
+	wynik = ReadTemp(); //Czytaj 3 bajty
+	Stop();
+	__delay_cycles(MEASURE_TIME);
+
+
+//    Start();
+//    SendComm(0xB4); //slave adress + Write 0xB
+//	SendComm(0x06); //komenda - czytaj temperature obiektu //objA
+//	Start();
+//	SendComm(0xB5); //slave adress + Read 0xB5
+//	wynikA = ReadTemp(); //Czytaj 3 bajty
+//	Stop();
+//	__delay_cycles(MEASURE_TIME);
+//
+//
+//	wynik_kor = pow((pow(wynik,4)-(1-0.98)*pow(wynikA,4))/0.98 ,0.25);
+//	unsigned char *byteArray = (unsigned char *)&wynik_kor;
+//	unsigned int i=0;
+//	for (i = 0; i < sizeof(wynik_kor); i++) {
+//	        TxData[i] = byteArray[i];
+//	}
+
+	TxData[3] = (wynik);
+	TxData[2] = (wynik)>>8;
+	TxData[1] = (wynik>>16);
+	TxData[0] = (wynik>>24);
+	i2c_send_bytes();
+	wynik2 = wynik*0.02-0.18-273.15;
+	}
 }
 
 

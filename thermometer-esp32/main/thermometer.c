@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include <inttypes.h>
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
@@ -113,18 +114,33 @@ void app_main(void){
     while(1){
         int read = i2c_slave_read_buffer(I2C_SLAVE_NUM, received_data, I2C_SLAVE_RX_BUF_LEN, 1000 / portTICK_PERIOD_MS);
         if(read != 0){
-            printf("---- Slave read: [%d] bytes ----\n", read);
-            for (int i = 0; i < I2C_SLAVE_RX_BUF_LEN; i++) {
-                printf("%d ", received_data[i]);
-            }
-            printf("\n");
-            printf("--------------------------------\n");
+            // printf("---- Slave read: [%d] bytes ----\n", read);
+            // for (int i = 0; i < I2C_SLAVE_RX_BUF_LEN; i++) {
+            //     printf("%d ", received_data[i]);
+            // }
+            // printf("\n");
+            // printf("--------------------------------\n");
+
+
+            // float received_float;
+            // memcpy(&received_float, received_data, sizeof(float));
+            // printf("%f \n", received_float);
+            // post_data(received_float*0.02-0.18-273.15);
+
+
+
             uint32_t end_result = received_data[0];
             for(int j=1 ; j < read; j++){
                 end_result = (end_result<<8) | received_data[j];
             }
             printf("%ld in decimal \n ", end_result);
-            post_data((int)end_result*0.02-0.18-273.15);
+            double t_sensor = pow((int)end_result, 4);
+            double t_bg = pow(14822,4); //23.11
+            double temperature_with_correction = pow((t_sensor-(1-0.98)*t_bg)/0.98, 0.25);
+            post_data(temperature_with_correction*0.02-0.18-273.15);
+            // post_data((int)end_result*0.02-0.18-273.15);
+
+
             i2c_reset_rx_fifo(I2C_SLAVE_NUM);
             memset(received_data, 0, I2C_SLAVE_RX_BUF_LEN);
         }
